@@ -2,18 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use \Datetime;
 use Illuminate\Http\Request;
 use AmoCRM\Client\AmoCRMApiClient;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use League\OAuth2\Client\Token\AccessToken;
 use AmoCRM\Models\ContactModel;
 use AmoCRM\Models\AccountModel;
+use AmoCRM\Models\LeadModel;
+use AmoCRM\Models\TaskModel;
 use AmoCRM\Models\CustomFieldsValues\TextCustomFieldValuesModel;
 use AmoCRM\Models\CustomFieldsValues\NumericCustomFieldValuesModel;
 use AmoCRM\Models\CustomFieldsValues\ValueCollections\TextCustomFieldValueCollection;
 use AmoCRM\Models\CustomFieldsValues\ValueCollections\NumericCustomFieldValueCollection;
 use AmoCRM\Models\CustomFieldsValues\ValueModels\TextCustomFieldValueModel;
 use AmoCRM\Models\CustomFieldsValues\ValueModels\NumericCustomFieldValueModel;
+use AmoCRM\Collections\LinksCollection;
+use AmoCRM\Collections\TasksCollection;
 
 define('TOKEN_FILE', DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'token_info.json');
 
@@ -154,9 +159,9 @@ class ContactController extends Controller
 
         $contact = new ContactModel();
         $account = $apiClient->account()->getCurrent(AccountModel::getAvailableWith());
-        $contact->setFirstName($name);
-        $contact->setLastName($surname);
-        $contact->setAccountId($account->getId());
+        $contact->setFirstName($name)
+                ->setLastName($surname)
+                ->setAccountId($account->getId());
         $customFields = $contact->getCustomFieldsValues();
 
         $phoneField = $customFields->getBy('code', 'PHONE');
@@ -200,6 +205,54 @@ class ContactController extends Controller
         );
 
         $contactModel = $apiClient->contacts()->addOne($contact);
+
+        $this->link_lead($contact, $apiClient);
         //return $accessToken->getToken();
+    }
+
+    private function link_lead($contact, $apiClient) {
+        $lead = new LeadModel();
+        $now = new DateTime();
+        $lead->setName("Сделка {$contact->getFirstName()} {$contact->getLastName()}")
+            ->setPrice(54321)
+            ->setAccountId($contact->getAccountId())->setCreatedAt($now->getTimestamp());
+        $links = new LinksCollection();
+        $links->add($contact);
+        $apiClient->leads()->link($lead, $links);
+
+        $this->link_task($lead, $apiClient);
+    }
+
+    private function link_task($lead, $apiClient) {
+        $tasksCollection = new TasksCollection();
+        $task = new TaskModel();
+        $completeTill = $lead->getCreatedAt() + 4 * 24 * 60 * 60;
+        $datetime = date("w G", $completeTill);
+        $weektime = explode(" ", $datetime);
+        if (int($weektime[1]) < 9) {
+            $completeTill += (9 - int($weektime[1])) * 60 * 60;
+        }
+        elseif (int($weektime[1]) > 18) {
+            $completeTill += (24 - $weektime[1] + 18) * 60 * 60;
+        }
+        $datetime = date("w G", $completeTill);
+        $weektime = explode(" ", $datetime);
+        if (int($weektime[0]) === 6) {
+            $completeTill += 48 * 60 * 60;
+        }
+        elseif (int($weektime[0]) === 0) {
+            $completeTill += 24 * 60 * 60;
+        }
+        $task->setTaskTypeId(TaskModel::TASK_TYPE_ID_CALL)
+            ->setText('Новая задача')
+            ->setCompleteTill($completeTill)
+            ->setEntityType(EntityTypesInterface::LEADS)
+            ->setEntityId($lead->getId())
+            ->setResponsibleUserId(123);  // responsibleUserId!!!
+        
+        $tasksCollection->add($task);
+
+        $tasksService = $apiClient->tasks();
+        $tasksCollection = $tasksService->add($tasksCollection);
     }
 }
