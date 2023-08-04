@@ -214,12 +214,14 @@ class ContactController extends Controller
         $now = new DateTime();
         $lead->setName("Сделка {$contact->getFirstName()} {$contact->getLastName()}")
             ->setPrice(54321)
-            ->setAccountId($contact->getAccountId())->setCreatedAt($now->getTimestamp());
+            ->setAccountId($contact->getAccountId())
+            ->setCreatedAt($now->getTimestamp());
         $links = new LinksCollection();
         $links->add($contact);
         $apiClient->leads()->link($lead, $links);
 
         $this->link_task($lead, $apiClient);
+        $this->link_product($lead, $apiClient);
     }
 
     private function link_task($lead, $apiClient) {
@@ -251,5 +253,15 @@ class ContactController extends Controller
             ->setResponsibleUserId($usersCollection->first()->getId());
 
         $taskModel = $apiClient->tasks()->addOne($task);
+    }
+
+    private function link_product($lead, $apiClient) {
+        $productsCollection = $apiClient->products()->get();
+        $product1 = $productsCollection->first();
+        $product2 = $productsCollection->last();
+
+        $links = new LinksCollection();
+        $links->add($product1)->add($product2);
+        $apiClient->leads()->link($lead, $links);
     }
 }

@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+define('SMARTY_DIR', '../vendor/smarty/smarty/libs/');
+require_once(SMARTY_DIR . 'Smarty.class.php');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -14,5 +17,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    $smarty = new Smarty();
+    $smarty->template_dir = '../resources/views/';
+    $smarty->assign('name','Ned');
+    $smarty->display('index.tpl');
+    //return view('welcome');
 });

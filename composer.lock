@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "be94bdaf91e80e034f7c272d0fb70056",
+    "content-hash": "b9053b92fa34917e5b31e9a0269e52ce",
     "packages": [
         {
             "name": "amocrm/amocrm-api-library",
@@ -3534,6 +3534,72 @@
             "time": "2023-04-15T23:01:58+00:00"
         },
         {
+            "name": "smarty/smarty",
+            "version": "v4.3.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/smarty-php/smarty.git",
+                "reference": "1d9cda2be34fd6edb74924684260636fd0b89288"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/smarty-php/smarty/zipball/1d9cda2be34fd6edb74924684260636fd0b89288",
+                "reference": "1d9cda2be34fd6edb74924684260636fd0b89288",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.1 || ^8.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^8.5 || ^7.5",
+                "smarty/smarty-lexer": "^3.1"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "4.0.x-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "libs/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Monte Ohrt",
+                    "email": "monte@ohrt.com"
+                },
+                {
+                    "name": "Uwe Tews",
+                    "email": "uwe.tews@googlemail.com"
+                },
+                {
+                    "name": "Rodney Rehm",
+                    "email": "rodney.rehm@medialize.de"
+                },
+                {
+                    "name": "Simon Wisselink",
+                    "homepage": "https://www.iwink.nl/"
+                }
+            ],
+            "description": "Smarty - the compiling PHP template engine",
+            "homepage": "https://smarty-php.github.io/smarty/",
+            "keywords": [
+                "templating"
+            ],
+            "support": {
+                "forum": "https://github.com/smarty-php/smarty/discussions",
+                "issues": "https://github.com/smarty-php/smarty/issues",
+                "source": "https://github.com/smarty-php/smarty/tree/v4.3.2"
+            },
+            "time": "2023-07-19T10:27:36+00:00"
+        },
+        {
             "name": "symfony/console",
             "version": "v6.3.2",
             "source": {
@@ -6123,6 +6189,92 @@
                 "source": "https://github.com/webmozarts/assert/tree/1.11.0"
             },
             "time": "2022-06-03T18:03:27+00:00"
+        },
+        {
+            "name": "ytake/laravel-smarty",
+            "version": "7.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ytake/Laravel.Smarty.git",
+                "reference": "4a1bfb781c28b98469f77ad72441a478bb4af1a5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ytake/Laravel.Smarty/zipball/4a1bfb781c28b98469f77ad72441a478bb4af1a5",
+                "reference": "4a1bfb781c28b98469f77ad72441a478bb4af1a5",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/config": "^10.0",
+                "illuminate/console": "^10.0",
+                "illuminate/events": "^10.0",
+                "illuminate/support": "^10.0",
+                "illuminate/view": "^10.0",
+                "php": "^8.1",
+                "smarty/smarty": "^4.3"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.14",
+                "pdepend/pdepend": "^2.12",
+                "phploc/phploc": "*",
+                "phpmd/phpmd": "^2.13",
+                "phpstan/phpstan": "^1.9",
+                "phpunit/phpunit": "^9.5.10",
+                "predis/predis": "^2.1",
+                "sebastian/phpcpd": "*",
+                "slevomat/coding-standard": "^8.8",
+                "squizlabs/php_codesniffer": "^3.7",
+                "symfony/console": "^6.0",
+                "symfony/framework-bundle": "^6.0"
+            },
+            "suggest": {
+                "ext-memcached": "memcached Template Cache Driver",
+                "predis/predis": "Redis Template Cache Driver"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Ytake\\LaravelSmarty\\SmartyServiceProvider",
+                        "Ytake\\LaravelSmarty\\SmartyConsoleServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Ytake\\LaravelSmarty\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Yuuki Takezawa",
+                    "email": "yuuki.takezawa@comnect.jp.net"
+                }
+            ],
+            "description": "Smarty template engine for Laravel and Lumen",
+            "keywords": [
+                "cache",
+                "laravel",
+                "lumen",
+                "smarty",
+                "template",
+                "view"
+            ],
+            "support": {
+                "issues": "https://github.com/ytake/Laravel.Smarty/issues",
+                "source": "https://github.com/ytake/Laravel.Smarty/tree/7.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ytake",
+                    "type": "github"
+                }
+            ],
+            "time": "2023-03-15T03:51:25+00:00"
         }
     ],
     "packages-dev": [
