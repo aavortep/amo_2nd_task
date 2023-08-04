@@ -19,7 +19,6 @@ require_once(SMARTY_DIR . 'Smarty.class.php');
 Route::get('/', function () {
     $smarty = new Smarty();
     $smarty->template_dir = '../resources/views/';
-    $smarty->assign('name','Ned');
     $smarty->display('index.tpl');
     //return view('welcome');
 });

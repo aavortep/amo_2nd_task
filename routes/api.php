@@ -20,4 +20,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 //Route::post('/contact', [ContactController::class, 'add'])->name('add_contact');
-Route::post('/auth', [ContactController::class, 'token_by_code']);
+Route::any('/auth', 'ContactController@token_by_code');

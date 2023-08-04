@@ -46,8 +46,7 @@ class ContactController extends Controller
 
     private function get_token() {
         if (!file_exists(TOKEN_FILE)) {
-            //exit('Access token file not found');
-            $this->token_by_code();
+            exit('Access token file not found');
         }
     
         $accessToken = json_decode(file_get_contents(TOKEN_FILE), true);
@@ -87,26 +86,26 @@ class ContactController extends Controller
         if (!isset($_GET['code'])) {
             $state = bin2hex(random_bytes(16));
             $_SESSION['oauth2state'] = $state;
-        if (isset($_GET['button'])) {
-            echo $apiClient->getOAuthClient()->getOAuthButton(
-                [
-                    'title' => 'Установить интеграцию',
-                    'compact' => true,
-                    'class_name' => 'className',
-                    'color' => 'default',
-                    'error_callback' => 'handleOauthError',
+            if (isset($_GET['button'])) {
+                echo $apiClient->getOAuthClient()->getOAuthButton(
+                    [
+                        'title' => 'Установить интеграцию',
+                        'compact' => true,
+                        'class_name' => 'className',
+                        'color' => 'default',
+                        'error_callback' => 'handleOauthError',
+                        'state' => $state,
+                    ]
+                );
+                die;
+            } else {
+                $authorizationUrl = $apiClient->getOAuthClient()->getAuthorizeUrl([
                     'state' => $state,
-                ]
-            );
-            die;
-        } else {
-            $authorizationUrl = $apiClient->getOAuthClient()->getAuthorizeUrl([
-                'state' => $state,
-                'mode' => 'post_message',
-            ]);
-            header('Location: ' . $authorizationUrl);
-            die;
-        }
+                    'mode' => 'post_message',
+                ]);
+                header('Location: ' . $authorizationUrl);
+                die;
+            }
         } elseif (!isset($_GET['from_widget']) && (empty($_GET['state']) || empty($_SESSION['oauth2state']) || ($_GET['state'] !== $_SESSION['oauth2state']))) {
             unset($_SESSION['oauth2state']);
             exit('Invalid state');
