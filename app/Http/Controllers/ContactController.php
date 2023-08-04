@@ -18,7 +18,6 @@ use AmoCRM\Models\CustomFieldsValues\ValueCollections\NumericCustomFieldValueCol
 use AmoCRM\Models\CustomFieldsValues\ValueModels\TextCustomFieldValueModel;
 use AmoCRM\Models\CustomFieldsValues\ValueModels\NumericCustomFieldValueModel;
 use AmoCRM\Collections\LinksCollection;
-use AmoCRM\Collections\TasksCollection;
 
 define('TOKEN_FILE', DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'token_info.json');
 
@@ -224,35 +223,33 @@ class ContactController extends Controller
     }
 
     private function link_task($lead, $apiClient) {
-        $tasksCollection = new TasksCollection();
         $task = new TaskModel();
+
         $completeTill = $lead->getCreatedAt() + 4 * 24 * 60 * 60;
-        $datetime = date("w G", $completeTill);
-        $weektime = explode(" ", $datetime);
-        if (int($weektime[1]) < 9) {
-            $completeTill += (9 - int($weektime[1])) * 60 * 60;
+        $time = date("G", $completeTill);
+        if (int($time) < 9) {
+            $completeTill += (9 - int($time)) * 60 * 60;
         }
-        elseif (int($weektime[1]) > 18) {
-            $completeTill += (24 - $weektime[1] + 18) * 60 * 60;
+        elseif (int($time) > 18) {
+            $completeTill += (24 - int($time) + 18) * 60 * 60;
         }
-        $datetime = date("w G", $completeTill);
-        $weektime = explode(" ", $datetime);
-        if (int($weektime[0]) === 6) {
+        $weekday = date("w", $completeTill);
+        if (int($weekday) === 6) {
             $completeTill += 48 * 60 * 60;
         }
-        elseif (int($weektime[0]) === 0) {
+        elseif (int($weekday) === 0) {
             $completeTill += 24 * 60 * 60;
         }
+
+        $usersCollection = $apiClient->users()->get();
+
         $task->setTaskTypeId(TaskModel::TASK_TYPE_ID_CALL)
             ->setText('Новая задача')
             ->setCompleteTill($completeTill)
             ->setEntityType(EntityTypesInterface::LEADS)
             ->setEntityId($lead->getId())
-            ->setResponsibleUserId(123);  // responsibleUserId!!!
-        
-        $tasksCollection->add($task);
+            ->setResponsibleUserId($usersCollection->first()->getId());
 
-        $tasksService = $apiClient->tasks();
-        $tasksCollection = $tasksService->add($tasksCollection);
+        $taskModel = $apiClient->tasks()->addOne($task);
     }
 }
