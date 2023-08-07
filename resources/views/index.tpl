@@ -26,20 +26,20 @@
 </style>
 </head>
 <body>
-<form action="/api/auth" method="post">
+<form action="/api/add" method="post">
   <div class="first">
     <label>Имя:
-      <input type="text">
+      <input type="text" name="name" id="name">
     </label>
   </div>
   <div class="container">
     <label>Фамилия:
-      <input type="text">
+      <input type="text" name="surname" id="surname">
     </label>
   </div>
   <div class="container">
     <label>Возраст:
-      <input type="number">
+      <input type="number" name="age" id="age">
     </label>
   </div>
   <div class="container">
@@ -52,12 +52,12 @@
   </div>
   <div class="container">
     <label>Телефон:
-      <input type="text">
+      <input type="text" name="phone" id="phone">
     </label>
   </div>
   <div class="container">
     <label>Email:
-      <input type="email">
+      <input type="email" name="email" id="email">
     </label>
   </div>
   <div class="button">

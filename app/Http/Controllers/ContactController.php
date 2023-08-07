@@ -69,7 +69,7 @@ class ContactController extends Controller
         }
     }
 
-    public function token_by_code(Request $request) {
+    private function connect_to_client(Request $request) {
         session_start();
         
         $clientId = $_ENV['CLIENT_ID'];
@@ -102,14 +102,15 @@ class ContactController extends Controller
                 $authorizationUrl = $apiClient->getOAuthClient()->getAuthorizeUrl([
                     'state' => $state,
                     'mode' => 'post_message',
+                    'api_client' => $apiClient,
                 ]);
                 header('Location: ' . $authorizationUrl);
                 die;
             }
-        } elseif (!isset($_GET['from_widget']) && (empty($_GET['state']) || empty($_SESSION['oauth2state']) || ($_GET['state'] !== $_SESSION['oauth2state']))) {
+        } /*elseif (!isset($_GET['from_widget']) && (empty($_GET['state']) || empty($_SESSION['oauth2state']) || ($_GET['state'] !== $_SESSION['oauth2state']))) {
             unset($_SESSION['oauth2state']);
             exit('Invalid state');
-        }
+        }*/
 
         try {
             $accessToken = $apiClient->getOAuthClient()->getAccessTokenByCode($_GET['code']);
@@ -125,10 +126,32 @@ class ContactController extends Controller
         } catch (Exception $e) {
             die((string)$e);
         }
-        $this->add($request);
+
+        return $apiClient;
     }
 
-    private function add(Request $request) {
+    public function token_by_code(Request $request) {
+        $apiClient = $this->connect_to_client($request);
+        $accessToken = $this->get_token();
+        $apiClient->setAccessToken($accessToken)
+            ->setAccountBaseDomain($accessToken->getValues()['baseDomain'])
+            ->onAccessTokenRefresh(
+                function (AccessTokenInterface $accessToken, string $baseDomain) {
+                    saveToken(
+                        [
+                            'accessToken' => $accessToken->getToken(),
+                            'refreshToken' => $accessToken->getRefreshToken(),
+                            'expires' => $accessToken->getExpires(),
+                            'baseDomain' => $baseDomain,
+                        ]
+                    );
+                }
+            );
+        dd($apiClient);
+        //$this->add($request);
+    }
+
+    public function get_data(Request $request) {
         $name = $request->input('name');
         $surname = $request->input('surname');
         $age = $request->input('age');
@@ -136,7 +159,7 @@ class ContactController extends Controller
         $phone = $request->input('phone');
         $email = $request->input('email');
 
-        $apiClient = $_SESSION['apiClient'];
+        $apiClient = $this->connect_to_client($request);
 
         $accessToken = $this->get_token();
 
