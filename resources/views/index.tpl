@@ -24,9 +24,35 @@
         margin: 30px;
     }
 </style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>
+  function sendJSON() {
+    let name = document.querySelector('#name');
+    let surname = document.querySelector('#surname');
+    let age = document.querySelector('#age');
+    let sex = document.querySelector('#sex');
+    let phone = document.querySelector('#phone');
+    let email = document.querySelector('#email');
+
+    let result = document.querySelector('.result');
+
+    let xhr = new XMLHttpRequest();
+    let url = "http://localhost:8000/api/add";
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    var data = JSON.stringify({ "name": name.value,
+                                "surname": surname.value,
+                                "age": age.value,
+                                "sex": sex.value,
+                                "phone": phone.value,
+                                "email": email.value });
+    xhr.send(data);
+  }
+</script>
 </head>
 <body>
-<form action="/api/add" method="post">
+<form>
   <div class="first">
     <label>Имя:
       <input type="text" name="name" id="name">
@@ -61,7 +87,7 @@
     </label>
   </div>
   <div class="button">
-    <button style="font-size: 16px; padding: 10px">Добавить контакт в AmoCRM</button>
+    <button style="font-size: 16px; padding: 10px" onclick="sendJSON()">Добавить контакт в AmoCRM</button>
   </div>
 </form>
 </body>
