@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.3.2, created on 2023-08-07 11:54:07
+/* Smarty version 4.3.2, created on 2023-08-08 15:21:52
   from '/home/apetrova/avortep/amo_2nd_task/resources/views/index.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.3.2',
-  'unifunc' => 'content_64d0db5f6e2e22_44479079',
+  'unifunc' => 'content_64d25d905ef199_95382916',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '2831d1ff434bd238b63be263375a1ef1de19d190' => 
     array (
       0 => '/home/apetrova/avortep/amo_2nd_task/resources/views/index.tpl',
-      1 => 1691409236,
+      1 => 1691504567,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_64d0db5f6e2e22_44479079 (Smarty_Internal_Template $_smarty_tpl) {
+function content_64d25d905ef199_95382916 (Smarty_Internal_Template $_smarty_tpl) {
 ?><html>
 <head>
 <title>Форма ввода данных</title>
@@ -68,8 +68,8 @@ function content_64d0db5f6e2e22_44479079 (Smarty_Internal_Template $_smarty_tpl)
   <div class="container">
     <label>Пол:
       <select name="sex">
-        <option value="w">женский</option>
-        <option value="m">мужской</option>
+        <option value="женский">женский</option>
+        <option value="мужской">мужской</option>
       </select>
     </label>
   </div>

@@ -45,8 +45,8 @@
   <div class="container">
     <label>Пол:
       <select name="sex">
-        <option value="w">женский</option>
-        <option value="m">мужской</option>
+        <option value="женский">женский</option>
+        <option value="мужской">мужской</option>
       </select>
     </label>
   </div>

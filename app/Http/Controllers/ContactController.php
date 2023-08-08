@@ -7,19 +7,29 @@ use Illuminate\Http\Request;
 use AmoCRM\Client\AmoCRMApiClient;
 use League\OAuth2\Client\Token\AccessTokenInterface;
 use League\OAuth2\Client\Token\AccessToken;
+use AmoCRM\Exceptions\AmoCRMApiException;
 use AmoCRM\Models\ContactModel;
 use AmoCRM\Models\AccountModel;
 use AmoCRM\Models\LeadModel;
 use AmoCRM\Models\TaskModel;
+use AmoCRM\Models\CatalogElementModel;
+use AmoCRM\Filters\CustomFieldsFilter;
+use AmoCRM\Models\CustomFields\TextCustomFieldModel;
+use AmoCRM\Models\CustomFields\NumericCustomFieldModel;
 use AmoCRM\Models\CustomFieldsValues\TextCustomFieldValuesModel;
 use AmoCRM\Models\CustomFieldsValues\NumericCustomFieldValuesModel;
 use AmoCRM\Models\CustomFieldsValues\ValueCollections\TextCustomFieldValueCollection;
 use AmoCRM\Models\CustomFieldsValues\ValueCollections\NumericCustomFieldValueCollection;
 use AmoCRM\Models\CustomFieldsValues\ValueModels\TextCustomFieldValueModel;
 use AmoCRM\Models\CustomFieldsValues\ValueModels\NumericCustomFieldValueModel;
+use AmoCRM\Helpers\EntityTypesInterface;
+use AmoCRM\Collections\CustomFields\CustomFieldsCollection;
+use AmoCRM\Collections\CustomFieldsValuesCollection;
 use AmoCRM\Collections\LinksCollection;
+use AmoCRM\Collections\CatalogElementsCollection;
 
 define('TOKEN_FILE', DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'token_info.json');
+define('DATA_FILE', DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'contact_data.json');
 
 class ContactController extends Controller
 {
@@ -41,6 +51,23 @@ class ContactController extends Controller
             file_put_contents(TOKEN_FILE, json_encode($data));
         } else {
             exit('Invalid access token ' . var_export($accessToken, true));
+        }
+    }
+
+    private function save_data($contactData) {
+        if (
+            isset($contactData)
+            && isset($contactData['name'])
+            && isset($contactData['surname'])
+            && isset($contactData['age'])
+            && isset($contactData['sex'])
+            && isset($contactData['phone'])
+            && isset($contactData['email'])
+            && ($contactData['age'] > 0)
+        ) {
+            file_put_contents(DATA_FILE, json_encode($contactData));
+        } else {
+            exit('Введенные данные некорректны');
         }
     }
 
@@ -67,6 +94,14 @@ class ContactController extends Controller
         } else {
             exit('Invalid access token ' . var_export($accessToken, true));
         }
+    }
+
+    private function get_data() {
+        if (!file_exists(DATA_FILE)) {
+            exit('Contact data file not found');
+        }
+        $contactData = json_decode(file_get_contents(DATA_FILE), true);
+        return $contactData;
     }
 
     private function connect_to_client(Request $request) {
@@ -107,10 +142,7 @@ class ContactController extends Controller
                 header('Location: ' . $authorizationUrl);
                 die;
             }
-        } /*elseif (!isset($_GET['from_widget']) && (empty($_GET['state']) || empty($_SESSION['oauth2state']) || ($_GET['state'] !== $_SESSION['oauth2state']))) {
-            unset($_SESSION['oauth2state']);
-            exit('Invalid state');
-        }*/
+        }
 
         try {
             $accessToken = $apiClient->getOAuthClient()->getAccessTokenByCode($_GET['code']);
@@ -147,88 +179,100 @@ class ContactController extends Controller
                     );
                 }
             );
-        dd($apiClient);
-        //$this->add($request);
+        
+        $contactData = $this->get_data();
+        $this->add_contact($contactData, $apiClient);
+        return redirect('/');
     }
 
-    public function get_data(Request $request) {
-        $name = $request->input('name');
-        $surname = $request->input('surname');
-        $age = $request->input('age');
-        $sex = $request->input('sex');
-        $phone = $request->input('phone');
-        $email = $request->input('email');
+    public function auth(Request $request) {
+        $this->save_data($request->input());
 
         $apiClient = $this->connect_to_client($request);
+    }
 
-        $accessToken = $this->get_token();
-
-        $apiClient->setAccessToken($accessToken)
-            ->setAccountBaseDomain($accessToken->getValues()['baseDomain'])
-            ->onAccessTokenRefresh(
-                function (AccessTokenInterface $accessToken, string $baseDomain) {
-                    saveToken(
-                        [
-                            'accessToken' => $accessToken->getToken(),
-                            'refreshToken' => $accessToken->getRefreshToken(),
-                            'expires' => $accessToken->getExpires(),
-                            'baseDomain' => $baseDomain,
-                        ]
-                    );
-                }
-            );
-
+    private function add_contact($contactData, $apiClient) {
         $contact = new ContactModel();
         $account = $apiClient->account()->getCurrent(AccountModel::getAvailableWith());
-        $contact->setFirstName($name)
-                ->setLastName($surname)
+        $contact->setFirstName($contactData['name'])
+                ->setLastName($contactData['surname'])
                 ->setAccountId($account->getId());
-        $customFields = $contact->getCustomFieldsValues();
+        
+        $this->add_fields($apiClient);
+        $customFields = new CustomFieldsValuesCollection();
 
         $phoneField = $customFields->getBy('code', 'PHONE');
         if (empty($phoneField)) {
-            $phoneField = (new TextCustomFieldValuesModel())->setCode('PHONE');
-            $customFields->add($phoneField);
+            $phoneField = (new TextCustomFieldValuesModel())->setFieldCode('PHONE');
         }
         $phoneField->setValues(
             (new TextCustomFieldValueCollection())
-                ->add((new TextCustomFieldValueModel())->setValue($phone))
+                ->add((new TextCustomFieldValueModel())->setValue($contactData['phone']))
         );
+        $customFields->add($phoneField);
 
         $emailField = $customFields->getBy('code', 'EMAIL');
         if (empty($emailField)) {
-            $emailField = (new TextCustomFieldValuesModel())->setCode('EMAIL');
-            $customFields->add($emailField);
+            $emailField = (new TextCustomFieldValuesModel())->setFieldCode('EMAIL');
         }
         $emailField->setValues(
             (new TextCustomFieldValueCollection())
-                ->add((new TextCustomFieldValueModel())->setValue($email))
+                ->add((new TextCustomFieldValueModel())->setValue($contactData['email']))
         );
+        $customFields->add($emailField);
 
         $sexField = $customFields->getBy('code', 'SEX');
         if (empty($sexField)) {
-            $sexField = (new TextCustomFieldValuesModel())->setCode('SEX');
-            $customFields->add($sexField);
+            $sexField = (new TextCustomFieldValuesModel())->setFieldCode('SEX');
         }
         $sexField->setValues(
             (new TextCustomFieldValueCollection())
-                ->add((new TextCustomFieldValueModel())->setValue($sex))
+                ->add((new TextCustomFieldValueModel())->setValue($contactData['sex']))
         );
+        $customFields->add($sexField);
         
         $ageField = $customFields->getBy('code', 'AGE');
         if (empty($ageField)) {
-            $ageField = (new NumericCustomFieldValuesModel())->setCode('AGE');
-            $customFields->add($ageField);
+            $ageField = (new NumericCustomFieldValuesModel())->setFieldCode('AGE');
         }
         $ageField->setValues(
             (new NumericCustomFieldValueCollection())
-                ->add((new NumericCustomFieldValueModel())->setValue($age))
+                ->add((new NumericCustomFieldValueModel())->setValue($contactData['age']))
         );
+        $customFields->add($ageField);
+
+        $contact->setCustomFieldsValues($customFields);
 
         $contactModel = $apiClient->contacts()->addOne($contact);
 
-        $this->link_lead($contact, $apiClient);
-        //return $accessToken->getToken();
+        $this->link_lead($contactModel, $apiClient);
+    }
+
+    private function add_fields($apiClient) {
+        $customFieldsService = $apiClient->customFields(EntityTypesInterface::CONTACTS);
+        $customFieldsCollection = new CustomFieldsCollection();
+
+        $result = $customFieldsService->get();
+
+        if (!$result->getBy('code', 'SEX')) {
+            $sex = new TextCustomFieldModel();
+            $sex->setName('Пол')->setSort(30)->setCode('SEX');
+            $customFieldsCollection->add($sex);
+        }
+        if (!$result->getBy('code', 'AGE')) {
+            $age = new NumericCustomFieldModel();
+            $age->setName('Возраст')->setSort(40)->setCode('AGE');
+            $customFieldsCollection->add($age);
+        }
+        
+        if (isset($sex) || isset($age)) {
+            try {
+                $customFieldsService->add($customFieldsCollection);
+            } catch (AmoCRMApiException $e) {
+                var_dump($customFieldsService->getLastRequestInfo());
+                die;
+            }
+        }
     }
 
     private function link_lead($contact, $apiClient) {
@@ -238,12 +282,14 @@ class ContactController extends Controller
             ->setPrice(54321)
             ->setAccountId($contact->getAccountId())
             ->setCreatedAt($now->getTimestamp());
+        $leadModel = $apiClient->leads()->addOne($lead);
+        
         $links = new LinksCollection();
         $links->add($contact);
-        $apiClient->leads()->link($lead, $links);
+        $apiClient->leads()->link($leadModel, $links);
 
-        $this->link_task($lead, $apiClient);
-        $this->link_product($lead, $apiClient);
+        $this->link_task($leadModel, $apiClient);
+        $this->link_product($leadModel, $apiClient);
     }
 
     private function link_task($lead, $apiClient) {
@@ -251,17 +297,17 @@ class ContactController extends Controller
 
         $completeTill = $lead->getCreatedAt() + 4 * 24 * 60 * 60;
         $time = date("G", $completeTill);
-        if (int($time) < 9) {
-            $completeTill += (9 - int($time)) * 60 * 60;
+        if ((int) $time < 9) {
+            $completeTill += (9 - (int) $time) * 60 * 60;
         }
-        elseif (int($time) > 18) {
-            $completeTill += (24 - int($time) + 18) * 60 * 60;
+        elseif ((int) $time > 18) {
+            $completeTill += (24 - (int) $time + 18) * 60 * 60;
         }
         $weekday = date("w", $completeTill);
-        if (int($weekday) === 6) {
+        if ((int) $weekday === 6) {
             $completeTill += 48 * 60 * 60;
         }
-        elseif (int($weekday) === 0) {
+        elseif ((int) $weekday === 0) {
             $completeTill += 24 * 60 * 60;
         }
 
@@ -278,9 +324,15 @@ class ContactController extends Controller
     }
 
     private function link_product($lead, $apiClient) {
-        $productsCollection = $apiClient->products()->get();
-        $product1 = $productsCollection->first();
-        $product2 = $productsCollection->last();
+        $catalogsCollection = $apiClient->catalogs()->get();
+        $catalog = $catalogsCollection->getBy('name', 'Товары');
+        $catalogElementsService = $apiClient->catalogElements($catalog->getId());
+        $catalogElementsCollection = $catalogElementsService->get();
+
+        $product1 = $catalogElementsCollection->first();
+        $product1->setQuantity(1);
+        $product2 = $catalogElementsCollection->last();
+        $product2->setQuantity(1);
 
         $links = new LinksCollection();
         $links->add($product1)->add($product2);
