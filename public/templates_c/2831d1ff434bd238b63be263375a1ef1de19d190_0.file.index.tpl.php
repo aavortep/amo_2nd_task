@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.3.2, created on 2023-08-08 16:13:50
+/* Smarty version 4.3.2, created on 2023-08-09 12:54:32
   from '/home/apetrova/avortep/amo_2nd_task/resources/views/index.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.3.2',
-  'unifunc' => 'content_64d269be949646_03997219',
+  'unifunc' => 'content_64d38c8859a3d8_58861504',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '2831d1ff434bd238b63be263375a1ef1de19d190' => 
     array (
       0 => '/home/apetrova/avortep/amo_2nd_task/resources/views/index.tpl',
-      1 => 1691511199,
+      1 => 1691585578,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_64d269be949646_03997219 (Smarty_Internal_Template $_smarty_tpl) {
+function content_64d38c8859a3d8_58861504 (Smarty_Internal_Template $_smarty_tpl) {
 ?><html>
 <head>
 <title>Форма ввода данных</title>
@@ -47,39 +47,9 @@ function content_64d269be949646_03997219 (Smarty_Internal_Template $_smarty_tpl)
         margin: 30px;
     }
 </style>
-<?php echo '<script'; ?>
- src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"><?php echo '</script'; ?>
->
-<?php echo '<script'; ?>
->
-  function sendJSON() {
-    let name = document.querySelector('#name');
-    let surname = document.querySelector('#surname');
-    let age = document.querySelector('#age');
-    let sex = document.querySelector('#sex');
-    let phone = document.querySelector('#phone');
-    let email = document.querySelector('#email');
-
-    let result = document.querySelector('.result');
-
-    let xhr = new XMLHttpRequest();
-    let url = "http://localhost:8000/api/add";
-    xhr.open("POST", url, true);
-    xhr.setRequestHeader("Content-Type", "application/json");
-
-    var data = JSON.stringify({ "name": name.value,
-                                "surname": surname.value,
-                                "age": age.value,
-                                "sex": sex.value,
-                                "phone": phone.value,
-                                "email": email.value });
-    xhr.send(data);
-  }
-<?php echo '</script'; ?>
->
 </head>
 <body>
-<form>
+<form action="/api/add" method="post">
   <div class="first">
     <label>Имя:
       <input type="text" name="name" id="name">
@@ -97,7 +67,7 @@ function content_64d269be949646_03997219 (Smarty_Internal_Template $_smarty_tpl)
   </div>
   <div class="container">
     <label>Пол:
-      <select name="sex">
+      <select name="sex" id="sex">
         <option value="женский">женский</option>
         <option value="мужской">мужской</option>
       </select>
@@ -114,9 +84,67 @@ function content_64d269be949646_03997219 (Smarty_Internal_Template $_smarty_tpl)
     </label>
   </div>
   <div class="button">
-    <button style="font-size: 16px; padding: 10px" onclick="sendJSON()">Добавить контакт в AmoCRM</button>
+    <button style="font-size: 16px; padding: 10px" id="btn">Добавить контакт в AmoCRM</button>
   </div>
 </form>
+
+<?php echo '<script'; ?>
+>
+  //document.getElementById("btn").addEventListener("click", sendJSON);
+
+  function sendJSON(event) {
+    event.preventDefault();
+
+    let name = document.querySelector('#name');
+    let surname = document.querySelector('#surname');
+    let age = document.querySelector('#age');
+    let select = document.getElementById("sex");
+	  let sex = select.value;
+    let phone = document.querySelector('#phone');
+    let email = document.querySelector('#email');
+
+    let result = document.querySelector('.result');
+
+    let xhr = new XMLHttpRequest();
+    let url = "/api/add";
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+
+    let data = { "name": name.value,
+                 "surname": surname.value,
+                 "age": age.value,
+                 "sex": sex,
+                 "phone": phone.value,
+                 "email": email.value };
+
+    var json_data = JSON.stringify(data);
+    
+    xhr.onload = function () {
+      alert(this.responseText);
+    };
+
+    xhr.onerror = function (err) {
+      alert(this.status);
+    };
+
+    xhr.send(json_data);
+
+    /*const options = {
+      method: 'POST',
+      body: json_data,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+
+    fetch('/api/add', options)
+      .then(res => res.json())
+      .then(res => console.log(res))
+      .catch(err => console.error(err))*/
+  }
+<?php echo '</script'; ?>
+>
+
 </body>
 </html><?php }
 }
