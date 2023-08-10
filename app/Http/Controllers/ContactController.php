@@ -383,6 +383,12 @@ class ContactController extends Controller
         }
 
         $usersCollection = $apiClient->users()->get();
+        $usersArray = [];
+        foreach ($usersCollection as $user) {
+            $usersArray[] = $user;
+        }
+        $randKey = array_rand($usersArray);
+        $randUser = $usersArray[$randKey];
 
         $task->setTaskTypeId(TaskModel::TASK_TYPE_ID_CALL)
             ->setText('Новая задача')
@@ -390,7 +396,7 @@ class ContactController extends Controller
             ->setDuration(9 * 60 * 60)
             ->setEntityType(EntityTypesInterface::LEADS)
             ->setEntityId($lead->getId())
-            ->setResponsibleUserId($usersCollection->first()->getId());
+            ->setResponsibleUserId($randUser->getId());
 
         $taskModel = $apiClient->tasks()->addOne($task);
     }
