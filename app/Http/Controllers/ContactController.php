@@ -373,13 +373,8 @@ class ContactController extends Controller
     {
         $task = new TaskModel();
 
-        $completeTill = $lead->getCreatedAt() + 4 * 24 * 60 * 60;
-        $time = date("G", $completeTill);
-        if ((int) $time < 9) {
-            $completeTill += (9 - (int) $time) * 60 * 60;
-        } elseif ((int) $time > 18) {
-            $completeTill += (24 - (int) $time + 18) * 60 * 60;
-        }
+        $now = date("Y-m-d", $lead->getCreatedAt());
+        $completeTill = strtotime($now . " +4 days 6 hours");
         $weekday = date("w", $completeTill);
         if ((int) $weekday === 6) {
             $completeTill += 48 * 60 * 60;
@@ -392,6 +387,7 @@ class ContactController extends Controller
         $task->setTaskTypeId(TaskModel::TASK_TYPE_ID_CALL)
             ->setText('Новая задача')
             ->setCompleteTill($completeTill)
+            ->setDuration(9 * 60 * 60)
             ->setEntityType(EntityTypesInterface::LEADS)
             ->setEntityId($lead->getId())
             ->setResponsibleUserId($usersCollection->first()->getId());
