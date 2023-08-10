@@ -355,10 +355,20 @@ class ContactController extends Controller
     {
         $lead = new LeadModel();
         $now = new DateTime();
+
+        $usersCollection = $apiClient->users()->get();
+        $usersArray = [];
+        foreach ($usersCollection as $user) {
+            $usersArray[] = $user;
+        }
+        $randKey = array_rand($usersArray);
+        $randUser = $usersArray[$randKey];
+
         $lead->setName("Сделка {$contact->getFirstName()} {$contact->getLastName()}")
             ->setPrice(54321)
             ->setAccountId($contact->getAccountId())
-            ->setCreatedAt($now->getTimestamp());
+            ->setCreatedAt($now->getTimestamp())
+            ->setResponsibleUserId($randUser->getId());
         $leadModel = $apiClient->leads()->addOne($lead);
 
         $links = new LinksCollection();
@@ -382,21 +392,13 @@ class ContactController extends Controller
             $completeTill += 24 * 60 * 60;
         }
 
-        $usersCollection = $apiClient->users()->get();
-        $usersArray = [];
-        foreach ($usersCollection as $user) {
-            $usersArray[] = $user;
-        }
-        $randKey = array_rand($usersArray);
-        $randUser = $usersArray[$randKey];
-
         $task->setTaskTypeId(TaskModel::TASK_TYPE_ID_CALL)
             ->setText('Новая задача')
             ->setCompleteTill($completeTill)
             ->setDuration(9 * 60 * 60)
             ->setEntityType(EntityTypesInterface::LEADS)
             ->setEntityId($lead->getId())
-            ->setResponsibleUserId($randUser->getId());
+            ->setResponsibleUserId($lead->getResponsibleUserId());
 
         $taskModel = $apiClient->tasks()->addOne($task);
     }
