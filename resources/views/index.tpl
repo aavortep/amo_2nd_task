@@ -72,20 +72,7 @@
   <script>
     document.getElementById("btn").addEventListener("click", sendJSON);
 
-    async function postData(url, data) {
-      const response = await fetch(url, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        redirect: "follow",
-        body: data,
-      });
-      return response;
-    }
-
-    async function sendJSON(event) {
+    function sendJSON(event) {
       event.preventDefault();
 
       let name = document.querySelector('#name');
@@ -96,12 +83,10 @@
       let phone = document.querySelector('#phone');
       let email = document.querySelector('#email');
 
-      //let result = document.querySelector('.result');
-
-      /*let xhr = new XMLHttpRequest();
+      let xhr = new XMLHttpRequest();
       let url = "/api/add";
       xhr.open("POST", url, true);
-      xhr.setRequestHeader("Content-Type", "application/json");*/
+      xhr.setRequestHeader("Content-Type", "application/json");
 
       let data = {
         "name": name.value,
@@ -114,21 +99,15 @@
 
       var json_data = JSON.stringify(data);
 
-      /*xhr.onload = function() {
-        alert(this.responseText);
+      xhr.onload = function() {
+        alert("Контакт успешно добавлен в amoCRM");
       };
 
       xhr.onerror = function(err) {
         alert(this.status);
       };
 
-      xhr.send(json_data);*/
-
-      const response = await postData("/api/add", json_data);
-      if (response.status === 200) {
-        const body = await response.json();
-        alert(body);
-      } else alert(response.status);
+      xhr.send(json_data);
     }
   </script>
 

@@ -120,45 +120,63 @@ class ContactController extends Controller
 
         $apiClient = new AmoCRMApiClient($clientId, $clientSecret, $redirectUri);
 
-        if (isset($_GET['referer'])) {
-            $apiClient->setAccountBaseDomain($_GET['referer']);
-        }
-
-        if (!isset($_GET['code'])) {
-            $state = bin2hex(random_bytes(16));
-            $_SESSION['oauth2state'] = $state;
-            if (isset($_GET['button'])) {
-                echo $apiClient->getOAuthClient()->getOAuthButton(
-                    [
-                        'title' => 'Установить интеграцию',
-                        'compact' => true,
-                        'class_name' => 'className',
-                        'color' => 'default',
-                        'error_callback' => 'handleOauthError',
-                        'state' => $state,
-                    ]
-                );
-                die;
-            } else {
-                $authorizationUrl = $apiClient->getOAuthClient()->getAuthorizeUrl([
-                    'state' => $state,
-                    'mode' => 'post_message',
-                    'api_client' => $apiClient,
-                ]);
-                header('Location: ' . $authorizationUrl);
-                die;
+        if (!file_exists(TOKEN_FILE)) {
+            if (isset($_GET['referer'])) {
+                $apiClient->setAccountBaseDomain($_GET['referer']);
             }
-        }
 
-        $accessToken = $apiClient->getOAuthClient()->getAccessTokenByCode($_GET['code']);
+            if (!isset($_GET['code'])) {
+                $state = bin2hex(random_bytes(16));
+                $_SESSION['oauth2state'] = $state;
+                if (isset($_GET['button'])) {
+                    echo $apiClient->getOAuthClient()->getOAuthButton(
+                        [
+                            'title' => 'Установить интеграцию',
+                            'compact' => true,
+                            'class_name' => 'className',
+                            'color' => 'default',
+                            'error_callback' => 'handleOauthError',
+                            'state' => $state,
+                        ]
+                    );
+                    die;
+                } else {
+                    $authorizationUrl = $apiClient->getOAuthClient()->getAuthorizeUrl([
+                        'state' => $state,
+                        'mode' => 'post_message',
+                        'api_client' => $apiClient,
+                    ]);
+                    header('Location: ' . $authorizationUrl);
+                    die;
+                }
+            }
 
-        if (!$accessToken->hasExpired()) {
-            $this->save_token([
-                'accessToken' => $accessToken->getToken(),
-                'refreshToken' => $accessToken->getRefreshToken(),
-                'expires' => $accessToken->getExpires(),
-                'baseDomain' => $apiClient->getAccountBaseDomain(),
-            ]);
+            $accessToken = $apiClient->getOAuthClient()->getAccessTokenByCode($_GET['code']);
+
+            if (!$accessToken->hasExpired()) {
+                $this->save_token([
+                    'accessToken' => $accessToken->getToken(),
+                    'refreshToken' => $accessToken->getRefreshToken(),
+                    'expires' => $accessToken->getExpires(),
+                    'baseDomain' => $apiClient->getAccountBaseDomain(),
+                ]);
+            }
+        } else {
+            $accessToken = $this->get_token();
+            $apiClient->setAccessToken($accessToken)
+                ->setAccountBaseDomain($accessToken->getValues()['baseDomain'])
+                ->onAccessTokenRefresh(
+                    function (AccessTokenInterface $accessToken, string $baseDomain) {
+                        saveToken(
+                            [
+                                'accessToken' => $accessToken->getToken(),
+                                'refreshToken' => $accessToken->getRefreshToken(),
+                                'expires' => $accessToken->getExpires(),
+                                'baseDomain' => $baseDomain,
+                            ]
+                        );
+                    }
+                );
         }
 
         return $apiClient;
@@ -192,7 +210,11 @@ class ContactController extends Controller
     {
         $this->save_data($request->input());
 
-        $this->connect_to_client($request);
+        $apiClient = $this->connect_to_client($request);
+
+        $contactData = $this->get_data();
+        $this->add_contact($contactData, $apiClient);
+        return redirect('/');
     }
 
     private function is_duplicate($contactData, $apiClient)

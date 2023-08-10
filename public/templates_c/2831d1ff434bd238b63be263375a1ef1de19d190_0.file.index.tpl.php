@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 4.3.2, created on 2023-08-09 16:16:15
+/* Smarty version 4.3.2, created on 2023-08-10 07:33:53
   from '/home/apetrova/avortep/amo_2nd_task/resources/views/index.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '4.3.2',
-  'unifunc' => 'content_64d3bbcf4ce139_41680038',
+  'unifunc' => 'content_64d492e1b05364_52560393',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
     '2831d1ff434bd238b63be263375a1ef1de19d190' => 
     array (
       0 => '/home/apetrova/avortep/amo_2nd_task/resources/views/index.tpl',
-      1 => 1691597738,
+      1 => 1691652783,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_64d3bbcf4ce139_41680038 (Smarty_Internal_Template $_smarty_tpl) {
+function content_64d492e1b05364_52560393 (Smarty_Internal_Template $_smarty_tpl) {
 ?><html>
 
 <head>
@@ -96,20 +96,7 @@ function content_64d3bbcf4ce139_41680038 (Smarty_Internal_Template $_smarty_tpl)
 >
     document.getElementById("btn").addEventListener("click", sendJSON);
 
-    async function postData(url, data) {
-      const response = await fetch(url, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        redirect: "follow",
-        body: data,
-      });
-      return response;
-    }
-
-    async function sendJSON(event) {
+    function sendJSON(event) {
       event.preventDefault();
 
       let name = document.querySelector('#name');
@@ -120,12 +107,10 @@ function content_64d3bbcf4ce139_41680038 (Smarty_Internal_Template $_smarty_tpl)
       let phone = document.querySelector('#phone');
       let email = document.querySelector('#email');
 
-      //let result = document.querySelector('.result');
-
-      /*let xhr = new XMLHttpRequest();
+      let xhr = new XMLHttpRequest();
       let url = "/api/add";
       xhr.open("POST", url, true);
-      xhr.setRequestHeader("Content-Type", "application/json");*/
+      xhr.setRequestHeader("Content-Type", "application/json");
 
       let data = {
         "name": name.value,
@@ -138,21 +123,15 @@ function content_64d3bbcf4ce139_41680038 (Smarty_Internal_Template $_smarty_tpl)
 
       var json_data = JSON.stringify(data);
 
-      /*xhr.onload = function() {
-        alert(this.responseText);
+      xhr.onload = function() {
+        alert("Контакт успешно добавлен в amoCRM");
       };
 
       xhr.onerror = function(err) {
         alert(this.status);
       };
 
-      xhr.send(json_data);*/
-
-      const response = await postData("/api/add", json_data);
-      if (response.status === 200) {
-        const body = await response.json();
-        alert(body);
-      } else alert(response.status);
+      xhr.send(json_data);
     }
   <?php echo '</script'; ?>
 >
