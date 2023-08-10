@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-define('SMARTY_DIR', '/home/apetrova/avortep/amo_2nd_task/vendor/smarty/smarty/libs/');
+define('SMARTY_DIR', '/Users/aavortep/Anya/prog/amo_2nd_task/vendor/smarty/smarty/libs/');
 require_once(SMARTY_DIR . 'Smarty.class.php');
 
 

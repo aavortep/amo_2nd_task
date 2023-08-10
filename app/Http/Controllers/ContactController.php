@@ -121,14 +121,14 @@ class ContactController extends Controller
         $apiClient = new AmoCRMApiClient($clientId, $clientSecret, $redirectUri);
 
         if (!file_exists(TOKEN_FILE)) {
-            if (isset($_GET['referer'])) {
-                $apiClient->setAccountBaseDomain($_GET['referer']);
+            if ($request->query('referer') !== null) {
+                $apiClient->setAccountBaseDomain($request->query('referer'));
             }
 
-            if (!isset($_GET['code'])) {
+            if ($request->query('code') === null) {
                 $state = bin2hex(random_bytes(16));
                 $_SESSION['oauth2state'] = $state;
-                if (isset($_GET['button'])) {
+                if ($request->query('button') === null) {
                     echo $apiClient->getOAuthClient()->getOAuthButton(
                         [
                             'title' => 'Установить интеграцию',
@@ -151,7 +151,7 @@ class ContactController extends Controller
                 }
             }
 
-            $accessToken = $apiClient->getOAuthClient()->getAccessTokenByCode($_GET['code']);
+            $accessToken = $apiClient->getOAuthClient()->getAccessTokenByCode($request->query('code'));
 
             if (!$accessToken->hasExpired()) {
                 $this->save_token([
@@ -167,7 +167,7 @@ class ContactController extends Controller
                 ->setAccountBaseDomain($accessToken->getValues()['baseDomain'])
                 ->onAccessTokenRefresh(
                     function (AccessTokenInterface $accessToken, string $baseDomain) {
-                        saveToken(
+                        $this->save_token(
                             [
                                 'accessToken' => $accessToken->getToken(),
                                 'refreshToken' => $accessToken->getRefreshToken(),
@@ -190,7 +190,7 @@ class ContactController extends Controller
             ->setAccountBaseDomain($accessToken->getValues()['baseDomain'])
             ->onAccessTokenRefresh(
                 function (AccessTokenInterface $accessToken, string $baseDomain) {
-                    saveToken(
+                    $this->save_token(
                         [
                             'accessToken' => $accessToken->getToken(),
                             'refreshToken' => $accessToken->getRefreshToken(),
@@ -206,7 +206,7 @@ class ContactController extends Controller
         return redirect('/');
     }
 
-    public function auth(Request $request)
+    public function add(Request $request)
     {
         $this->save_data($request->input());
 
@@ -267,7 +267,7 @@ class ContactController extends Controller
             }
         } else {
             $contact = new ContactModel();
-            $account = $apiClient->account()->getCurrent(AccountModel::getAvailableWith());
+            $account = $apiClient->account()->getCurrent();
             $contact->setFirstName($contactData['name'])
                 ->setLastName($contactData['surname'])
                 ->setAccountId($account->getId());
@@ -342,12 +342,7 @@ class ContactController extends Controller
         }
 
         if (isset($sex) || isset($age)) {
-            try {
-                $customFieldsService->add($customFieldsCollection);
-            } catch (AmoCRMApiException $e) {
-                var_dump($customFieldsService->getLastRequestInfo());
-                die;
-            }
+            $customFieldsService->add($customFieldsCollection);
         }
     }
 
