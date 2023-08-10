@@ -128,7 +128,7 @@ class ContactController extends Controller
             if ($request->query('code') === null) {
                 $state = bin2hex(random_bytes(16));
                 $_SESSION['oauth2state'] = $state;
-                if ($request->query('button') === null) {
+                if ($request->query('button') !== null) {
                     echo $apiClient->getOAuthClient()->getOAuthButton(
                         [
                             'title' => 'Установить интеграцию',
