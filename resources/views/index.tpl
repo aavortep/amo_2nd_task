@@ -3,6 +3,14 @@
 <head>
   <title>Форма ввода данных</title>
   <style>
+    input:invalid {
+      border: 2px solid red;
+    }
+
+    input:valid {
+      border: 2px solid black;
+    }
+
     .first {
       display: flex;
       align-items: center;
@@ -33,17 +41,17 @@
   <form action="/api/add" method="post">
     <div class="first">
       <label>Имя:
-        <input type="text" name="name" id="name">
+        <input type="text" name="name" id="name" required>
       </label>
     </div>
     <div class="container">
       <label>Фамилия:
-        <input type="text" name="surname" id="surname">
+        <input type="text" name="surname" id="surname" required>
       </label>
     </div>
     <div class="container">
       <label>Возраст:
-        <input type="number" name="age" id="age">
+        <input type="number" name="age" id="age" required>
       </label>
     </div>
     <div class="container">
@@ -56,12 +64,12 @@
     </div>
     <div class="container">
       <label>Телефон:
-        <input type="text" name="phone" id="phone">
+        <input type="text" name="phone" id="phone" required>
       </label>
     </div>
     <div class="container">
       <label>Email:
-        <input type="email" name="email" id="email">
+        <input type="email" name="email" id="email" required>
       </label>
     </div>
     <div class="button">
